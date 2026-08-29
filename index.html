@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FONTE">
 <meta name="theme-color" content="#05070a">
+<link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2305070a'/%3E%3Cg stroke='%232af5e0' stroke-width='7' stroke-linecap='round'%3E%3Cline x1='18' y1='50' x2='82' y2='50'/%3E%3Cline x1='30' y1='34' x2='30' y2='66'/%3E%3Cline x1='70' y1='34' x2='70' y2='66'/%3E%3Cline x1='18' y1='40' x2='18' y2='60'/%3E%3Cline x1='82' y1='40' x2='82' y2='60'/%3E%3C/g%3E%3C/svg%3E">
 <!--
   ONLY FONTE | NO BS © 2026 Schmitt — Tous droits réservés.
@@ -549,9 +550,133 @@ h1 .ver{color:var(--neon);font-family:var(--font-digit);font-size:.66rem;vertica
 #floatTimer .fc-close{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(8,12,16,.9);border:1px solid var(--danger);color:var(--danger);font-size:.5rem;display:flex;align-items:center;justify-content:center;padding:0;}
 
 
+/* ===== LICENCE GATE ===== */
+#licenseGate{
+  position:fixed; inset:0; z-index:99999;
+  background:var(--bg-0, #05070a);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+}
+html.licensed #licenseGate{ display:none !important; }
+.lg-box{
+  width:100%; max-width:380px;
+  background:var(--panel, rgba(255,255,255,.06));
+  border:1px solid var(--border, rgba(255,255,255,.12));
+  border-radius:18px; padding:28px 22px;
+  text-align:center;
+}
+.lg-title{
+  font-size:1.3rem; font-weight:800; color:var(--text, #e4ebf1);
+  margin-bottom:4px; letter-spacing:.3px;
+}
+.lg-sub{
+  font-size:.85rem; color:var(--text-dim, #7d8896);
+  margin-bottom:20px; line-height:1.4;
+}
+.lg-input{
+  width:100%; box-sizing:border-box; font-size:16px;
+  padding:14px 12px; border-radius:12px; text-align:center;
+  letter-spacing:1px; text-transform:uppercase;
+  background:var(--modal-backdrop, #030405);
+  border:1px solid var(--border, rgba(255,255,255,.15));
+  color:var(--text, #e4ebf1); margin-bottom:12px;
+}
+.lg-btn{
+  width:100%; font-size:1rem; font-weight:700; padding:14px 0;
+  border-radius:12px; border:none; cursor:pointer;
+  background:var(--neon, #2af5e0); color:#04140f;
+}
+.lg-btn:disabled{ opacity:.5; }
+.lg-error{
+  color:var(--danger, #ff5470); font-size:.82rem;
+  margin-top:12px; min-height:1.1em;
+}
+.lg-buy{
+  display:block; margin-top:18px; font-size:.8rem;
+  color:var(--neon, #2af5e0); text-decoration:none;
+}
 </style>
 </head>
 <body>
+
+<!-- Vérification locale immédiate : évite l'affichage du verrou si déjà validé -->
+<script>
+  (function(){
+    try{
+      if(localStorage.getItem('ONLY_FONTE_LICENSE_OK') === '1'){
+        document.documentElement.classList.add('licensed');
+      }
+    }catch(e){}
+  })();
+</script>
+
+<div id="licenseGate">
+  <div class="lg-box">
+    <div class="lg-title">ONLY FONTE | NO BS</div>
+    <div class="lg-sub">Entrez votre code d'accès reçu par email après votre achat sur Gumroad.</div>
+    <input id="lgInput" class="lg-input" type="text" placeholder="XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <button id="lgSubmit" class="lg-btn">Déverrouiller</button>
+    <div id="lgError" class="lg-error"></div>
+    <a class="lg-buy" href="https://michaelwave210.gumroad.com/l/ngewae" target="_blank" rel="noopener">Pas encore de code ? Acheter l'application →</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ⚠️ Remplacer par le permalink exact du produit sur Gumroad une fois créé
+  var GUMROAD_PRODUCT_PERMALINK = "ngewae";
+
+  var input = document.getElementById('lgInput');
+  var btn = document.getElementById('lgSubmit');
+  var err = document.getElementById('lgError');
+
+  function setLicensed(){
+    try{ localStorage.setItem('ONLY_FONTE_LICENSE_OK','1'); }catch(e){}
+    document.documentElement.classList.add('licensed');
+  }
+
+  function verify(code){
+    err.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Vérification...";
+
+    var body = new URLSearchParams();
+    body.set('product_permalink', GUMROAD_PRODUCT_PERMALINK);
+    body.set('license_key', code);
+    body.set('increment_uses_count', 'false');
+
+    fetch('https://api.gumroad.com/v2/licenses/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      btn.disabled = false;
+      btn.textContent = "Déverrouiller";
+      if(data && data.success){
+        setLicensed();
+      } else {
+        err.textContent = "Code invalide. Vérifiez et réessayez.";
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.textContent = "Déverrouiller";
+      err.textContent = "Connexion impossible. Vérifiez votre accès internet.";
+    });
+  }
+
+  btn.addEventListener('click', function(){
+    var code = (input.value || "").trim();
+    if(!code){ err.textContent = "Merci d'entrer votre code."; return; }
+    verify(code);
+  });
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ btn.click(); }
+  });
+})();
+</script>
 
 <header id="mainHeader">
   <div class="title-row">
@@ -3698,7 +3823,7 @@ function exportJSON(){
     var a = document.createElement("a");
     var d = new Date();
     var stamp = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-    a.href = url; a.download = "muscleman_sauvegarde_"+stamp+".json";
+    a.href = url; a.download = "only_fonte_sauvegarde_"+stamp+".json";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
     return true;
@@ -3781,6 +3906,19 @@ renderAll();
 refreshSessionWidgetForCurrentDay();
 
 })();
+</script>
+
+<script>
+// Enregistrement du service worker : rend l'app utilisable 100% hors ligne
+// après le tout premier chargement, tout en se mettant à jour automatiquement
+// en arrière-plan dès qu'une connexion est disponible.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function (err) {
+      console.warn("Service worker non disponible :", err);
+    });
+  });
+}
 </script>
 </body>
 </html>
