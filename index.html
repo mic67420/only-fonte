@@ -677,19 +677,24 @@ html.licensed #licenseGate{ display:none !important; }
   });
 
   // ---- Déblocage local pour tests (usage perso uniquement) ----
-  // Tapoter 5 fois sur le titre en moins de 3 secondes débloque l'app
+  // Tapoter 5 fois sur le titre en moins de 4 secondes débloque l'app
   // sans passer par Gumroad. Pratique pour tester sans acheter à chaque fois.
   (function(){
     var title = document.getElementById('lgTitle');
     var taps = [];
-    title.addEventListener('click', function(){
+    title.style.cursor = "pointer";
+    function onTap(){
       var now = Date.now();
       taps.push(now);
-      taps = taps.filter(function(t){ return now - t < 3000; });
+      taps = taps.filter(function(t){ return now - t < 4000; });
+      err.style.color = "var(--neon, #2af5e0)";
+      err.textContent = taps.length < 5 ? ("Tap " + taps.length + "/5...") : "";
       if(taps.length >= 5){
         setLicensed();
       }
-    });
+    }
+    title.addEventListener('click', onTap);
+    title.addEventListener('touchend', function(e){ e.preventDefault(); onTap(); });
   })();
 })();
 </script>
