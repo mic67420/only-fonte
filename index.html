@@ -612,7 +612,7 @@ html.licensed #licenseGate{ display:none !important; }
 
 <div id="licenseGate">
   <div class="lg-box">
-    <div class="lg-title">ONLY FONTE | NO BS</div>
+    <div class="lg-title" id="lgTitle">ONLY FONTE | NO BS</div>
     <div class="lg-sub">Entrez votre code d'accès reçu par email après votre achat sur Gumroad.</div>
     <input id="lgInput" class="lg-input" type="text" placeholder="XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
     <button id="lgSubmit" class="lg-btn">Déverrouiller</button>
@@ -675,6 +675,22 @@ html.licensed #licenseGate{ display:none !important; }
   input.addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ btn.click(); }
   });
+
+  // ---- Déblocage local pour tests (usage perso uniquement) ----
+  // Tapoter 5 fois sur le titre en moins de 3 secondes débloque l'app
+  // sans passer par Gumroad. Pratique pour tester sans acheter à chaque fois.
+  (function(){
+    var title = document.getElementById('lgTitle');
+    var taps = [];
+    title.addEventListener('click', function(){
+      var now = Date.now();
+      taps.push(now);
+      taps = taps.filter(function(t){ return now - t < 3000; });
+      if(taps.length >= 5){
+        setLicensed();
+      }
+    });
+  })();
 })();
 </script>
 
